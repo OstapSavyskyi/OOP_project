@@ -1,0 +1,39 @@
+{
+    "products": [
+        {
+            "name": "Apple",
+            "description": "Good",
+            "price": 10.0,
+            "quantity": 500,
+            "manufacture_date": "2024-01-01",
+            "expiry_date": "2024-08-01",
+            "category": "Fruit",
+            "sales": [
+                {
+                    "date": "2024-04-21T22:13:54.448170",
+                    "quantity": 50
+                }
+            ]
+        },
+        {
+            "name": "Donuts",
+            "description": "PPP",
+            "price": 25.0,
+            "quantity": 50,
+            "manufacture_date": "2024-04-20",
+            "expiry_date": "2024-05-09",
+            "category": "Sweets",
+            "sales": []
+        },
+        {
+            "name": "Перець",
+            "description": "Гострий",
+            "price": 35.0,
+            "quantity": 500,
+            "manufacture_date": "2024-04-20",
+            "expiry_date": "2024-10-01",
+            "category": "Фрукт",
+            "sales": []
+        }
+    ]
+}
