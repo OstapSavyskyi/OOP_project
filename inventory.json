@@ -4,13 +4,21 @@
             "name": "Apple",
             "description": "Good",
             "price": 10.0,
-            "quantity": 500,
+            "quantity": 350,
             "manufacture_date": "2024-01-01",
             "expiry_date": "2024-08-01",
             "category": "Fruit",
             "sales": [
                 {
                     "date": "2024-04-21T22:13:54.448170",
+                    "quantity": 50
+                },
+                {
+                    "date": "2024-04-21T23:37:53.074442",
+                    "quantity": 100
+                },
+                {
+                    "date": "2024-04-21T23:47:49.552855",
                     "quantity": 50
                 }
             ]
@@ -33,6 +41,16 @@
             "manufacture_date": "2024-04-20",
             "expiry_date": "2024-10-01",
             "category": "Фрукт",
+            "sales": []
+        },
+        {
+            "name": "Mango",
+            "description": "W",
+            "price": 60.0,
+            "quantity": 150,
+            "manufacture_date": "2024-04-20",
+            "expiry_date": "2024-05-20",
+            "category": "Fruit",
             "sales": []
         }
     ]

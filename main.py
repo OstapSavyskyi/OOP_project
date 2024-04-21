@@ -47,10 +47,10 @@ class InventoryManagementSystem:
                     product.quantity -= quantity
                     sale_date_time = datetime.now().isoformat()
                     product.sales.append(Sale(sale_date_time, quantity))
-                    return get_string('sold_product', self.language)
+                    return {"quantity": quantity, "product_name": product.name}
                 else:
-                    return get_string('not_enough_quantity', self.language)
-        return get_string('product_not_found', self.language)
+                    return None
+        return None
 
     def update_product(self, product_name, new_quantity, new_price):
         for product in self.products:
@@ -233,7 +233,12 @@ def main():
         elif command == '3':
             product_name = input("Enter product name: ")
             quantity = int(input("Enter quantity to sell: "))
-            print(inventory.sell_product(product_name, quantity))
+            result = inventory.sell_product(product_name, quantity)
+            if result:
+                print(f"Продано {result['quantity']} одиниць {result['product_name']}.")
+            else:
+                print("Недостатньо кількості для продажу або продукт не знайдено.")
+
 
         elif command == '4':
             product_name = input("Enter product name: ")
