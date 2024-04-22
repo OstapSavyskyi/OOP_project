@@ -1,7 +1,6 @@
 from datetime import date, datetime
 import json
 import time
-import ast
 import re
 
 class Product:
@@ -20,7 +19,6 @@ class Product:
 
     def update_quantity(self, new_quantity):
         self.quantity = new_quantity
-pass
 
 class InventoryManagementSystem:
     def __init__(self):
@@ -62,7 +60,7 @@ class InventoryManagementSystem:
                 return get_string('product_updated', self.language)
         return get_string('product_not_found', self.language)
 
-    def parse_search_criteria(input_string):
+    def parse_search_criteria(self, input_string):
         pattern = r"(\w+)=([\w\d]+)"
         matches = re.findall(pattern, input_string)
         criteria = {}
@@ -108,27 +106,58 @@ class InventoryManagementSystem:
         return report
 
     @staticmethod
-    def sort_products(inventory, price_range=None, quantity_range=None, category=None):
+    def save_inventory_to_file(inventory, filename):
+        def default(obj):
+            if isinstance(obj, (datetime, date)):
+                return obj.isoformat()
+            raise TypeError(f'Object of type {obj.__class__.__name__} is not JSON serializable')
+
+        current_date_time = datetime.now().isoformat()
+
+        data = {
+            "products": [
+                {
+                    "name": product.name,
+                    "description": product.description,
+                    "price": product.price,
+                    "quantity": product.quantity,
+                    "manufacture_date": product.manufacture_date.isoformat() if isinstance(product.manufacture_date, (datetime, date)) else None,
+                    "expiry_date": product.expiry_date.isoformat() if isinstance(product.expiry_date, (datetime, date)) else None,
+                    "category": product.category,
+                    "sales": [
+                        {
+                            "date": current_date_time if sale.date is None else (sale.date.isoformat() if isinstance(sale.date, (datetime, date)) else sale.date),
+                            "quantity": sale.quantity
+                        }
+                        for sale in product.sales
+                    ]
+                }
+                for product in inventory.products
+            ]
+        }
+
+        with open(filename, 'w', encoding='utf-8') as file:
+            json.dump(data, file, indent=4, default=default, ensure_ascii=False)
+
+    def sort_products(self, price_range=None, quantity_range=None, category=None):
         if price_range:
-            inventory.products = sorted(inventory.products, key=lambda x: x.price, reverse=True if price_range[0] > price_range[1] else False)
+            self.products = sorted(self.products, key=lambda x: x.price, reverse=True if price_range[0] > price_range[1] else False)
         if quantity_range:
-            inventory.products = sorted(inventory.products, key=lambda x: x.quantity, reverse=True if quantity_range[0] > quantity_range[1] else False)
+            self.products = sorted(self.products, key=lambda x: x.quantity, reverse=True if quantity_range[0] > quantity_range[1] else False)
         if category:
-            inventory.products = [p for p in inventory.products if p.category.lower() == category.lower()]
-    
-    @staticmethod
-    def reset_sorting(inventory, initial_products):
-        inventory.products = initial_products.copy()
+            self.products = [p for p in self.products if p.category.lower() == category.lower()]
+
+        InventoryManagementSystem.save_inventory_to_file(self, 'inventory.json')
+
+    def reset_sorting(self, initial_products):
+        self.products = initial_products.copy()
 
 class Sale:
     def __init__(self, date, quantity):
         self.date = date
         self.quantity = quantity
 
-    products_to_save = [product.__dict__ for product in inventory.products]
-    
-    with open('inventory.json', 'w') as json_file:
-        json.dump({"products": products_to_save}, json_file, indent=4)
+inventory = InventoryManagementSystem()
 
 def save_inventory_to_file(inventory, filename):
     def default(obj):
@@ -163,6 +192,7 @@ def save_inventory_to_file(inventory, filename):
     with open(filename, 'w', encoding='utf-8') as file:
         json.dump(data, file, indent=4, default=default, ensure_ascii=False)
 
+
 def load_inventory_from_file(filename):
     today = date.today()
     try:
@@ -190,17 +220,15 @@ def load_inventory_from_file(filename):
         return InventoryManagementSystem()
 
 def get_string(key, language='en'):
+    Strings = {
+        'product_added': {'en': 'Product added successfully.', 'uk': 'Продукт успішно додано.'},
+        'product_removed': {'en': 'Product removed successfully.', 'uk': 'Продукт успішно видалено.'},
+        'sold_product': {'en': 'Sold {quantity} units of {product_name}.', 'uk': 'Продано {quantity} одиниць {product_name}.'},
+        'not_enough_quantity': {'en': 'Not enough quantity available for sale.', 'uk': 'Недостатньо кількості для продажу.'},
+        'product_not_found': {'en': 'Product not found.', 'uk': 'Продукт не знайдено.'},
+        'product_updated': {'en': 'Updated product {product_name} quantity and price.', 'uk': 'Оновлено кількість та ціну продукту {product_name}.'},
+    }
     return Strings[key][language]
-
-Strings = {
-    'product_added': {'en': 'Product added successfully.', 'uk': 'Продукт успішно додано.'},
-    'product_removed': {'en': 'Product removed successfully.', 'uk': 'Продукт успішно видалено.'},
-    'sold_product': {'en': 'Sold {quantity} units of {product_name}.', 'uk': 'Продано {quantity} одиниць {product_name}.'},
-    'not_enough_quantity': {'en': 'Not enough quantity available for sale.', 'uk': 'Недостатньо кількості для продажу.'},
-    'product_not_found': {'en': 'Product not found.', 'uk': 'Продукт не знайдено.'},
-    'product_updated': {'en': 'Updated product {product_name} quantity and price.', 'uk': 'Оновлено кількість та ціну продукту {product_name}.'},
-}
-
 
 def input_price_range():
     min_price = float(input("Enter minimum price: "))
@@ -216,7 +244,6 @@ def main():
     inventory_filename = "inventory.json"
     inventory = load_inventory_from_file(inventory_filename)
     initial_inventory = inventory.products.copy()
-    inventory = InventoryManagementSystem()
 
     inventory.set_language('uk')
 
@@ -256,10 +283,9 @@ def main():
             quantity = int(input("Enter quantity to sell: "))
             result = inventory.sell_product(product_name, quantity)
             if result:
-                print(f"Продано {result['quantity']} одиниць {result['product_name']}.")
+                print(get_string('sold_product', inventory.language).format(quantity=result['quantity'], product_name=result['product_name']))
             else:
-                print("Недостатньо кількості для продажу або продукт не знайдено.")
-
+                print(get_string('not_enough_quantity', inventory.language))
 
         elif command == '4':
             product_name = input("Enter product name: ")
@@ -278,12 +304,11 @@ def main():
                 for product in inventory.products:
                     if criteria_string in product.name.lower() or criteria_string in product.category.lower():
                         results.append(product)
-        
+
                 for product in results:
                     print(f"{product.name} - {product.category} - {product.quantity} - {product.price}")
             except Exception as e:
                 print(f"Invalid criteria: {e}")
-
 
         elif command == '6':
             start_date = input("Enter start date (YYYY-MM-DD): ")
@@ -298,7 +323,7 @@ def main():
             report = inventory.generate_sales_report(start_date_time, end_date_time)
             for product, details in report.items():
                 print(f"{product}: Quantity: {details['Quantity']}, Sales Quantity: {details['Sales Quantity']}")
-        
+
         elif command == '8':
             initial_products = inventory.products.copy()
             print("1. Sort by price")
@@ -306,27 +331,26 @@ def main():
             print("3. Sort by category")
             print("4. Reset sorting")
             sort_choice = input("Enter sorting option: ")
-            
+
             if sort_choice == '1':
                 price_range = input_price_range()
-                InventoryManagementSystem.sort_products(inventory, price_range=price_range)
+                inventory.sort_products(price_range=price_range)
             elif sort_choice == '2':
                 quantity_range = input_quantity_range()
-                InventoryManagementSystem.sort_products(inventory, quantity_range=quantity_range)
+                inventory.sort_products(quantity_range=quantity_range)
             elif sort_choice == '3':
                 category = input("Enter category: ")
-                InventoryManagementSystem.sort_products(inventory, category=category)
+                inventory.sort_products(category=category)
             elif sort_choice == '4':
-                reset_sorting(inventory, initial_products)
+                inventory.reset_sorting(initial_products)
+                inventory.products = initial_inventory.copy()
             else:
                 print("Invalid sorting option.")
-            
+
             save_inventory_to_file(inventory, inventory_filename)
             print("Sorting applied and inventory saved.")
 
-
         elif command == '9':
-            inventory.products = initial_inventory.copy()
             save_inventory_to_file(inventory, inventory_filename)
             print("Inventory saved and exiting.")
             break

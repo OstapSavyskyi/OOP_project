@@ -1,6 +1,26 @@
 {
     "products": [
         {
+            "name": "Donuts",
+            "description": "PPP",
+            "price": 30.0,
+            "quantity": 100,
+            "manufacture_date": "2024-04-20",
+            "expiry_date": "2024-05-09",
+            "category": "Sweets",
+            "sales": []
+        },
+        {
+            "name": "Mango",
+            "description": "W",
+            "price": 60.0,
+            "quantity": 150,
+            "manufacture_date": "2024-04-20",
+            "expiry_date": "2024-05-20",
+            "category": "Fruit",
+            "sales": []
+        },
+        {
             "name": "Apple",
             "description": "Good",
             "price": 10.0,
@@ -24,14 +44,19 @@
             ]
         },
         {
-            "name": "Donuts",
-            "description": "PPP",
-            "price": 25.0,
-            "quantity": 50,
+            "name": "Banana",
+            "description": "Good",
+            "price": 20.0,
+            "quantity": 300,
             "manufacture_date": "2024-04-20",
-            "expiry_date": "2024-05-09",
-            "category": "Sweets",
-            "sales": []
+            "expiry_date": "2024-06-10",
+            "category": "Fruit",
+            "sales": [
+                {
+                    "date": "2024-04-22T21:53:10.210813",
+                    "quantity": 50
+                }
+            ]
         },
         {
             "name": "Перець",
@@ -44,13 +69,13 @@
             "sales": []
         },
         {
-            "name": "Mango",
-            "description": "W",
-            "price": 60.0,
-            "quantity": 150,
+            "name": "Apple pie",
+            "description": "MMMM, NICE",
+            "price": 100.0,
+            "quantity": 30,
             "manufacture_date": "2024-04-20",
-            "expiry_date": "2024-05-20",
-            "category": "Fruit",
+            "expiry_date": "2024-05-15",
+            "category": "Baking",
             "sales": []
         }
     ]
