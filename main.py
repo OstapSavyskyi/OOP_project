@@ -2,6 +2,7 @@ from datetime import date, datetime
 import json
 import time
 import ast
+import re
 
 class Product:
     def __init__(self, name, description, price, quantity, manufacture_date, expiry_date, category):
@@ -19,6 +20,7 @@ class Product:
 
     def update_quantity(self, new_quantity):
         self.quantity = new_quantity
+pass
 
 class InventoryManagementSystem:
     def __init__(self):
@@ -105,22 +107,28 @@ class InventoryManagementSystem:
 
         return report
 
-    def sort_products_by_price(self):
-        category_order = {"Fruit": 1, "Drinks": 2, "Sweets": 3, "Other": 4}
-        self.products.sort(key=lambda x: (category_order.get(x.category, float('inf')), x.price))
-
-    def sort_products_by_quantity(self):
-        category_order = {"Fruit": 1, "Drinks": 2, "Sweets": 3, "Other": 4}
-        self.products.sort(key=lambda x: (category_order.get(x.category, float('inf')), x.quantity))
-
-    def sort_products_by_category(self):
-        category_order = {"Fruit": 1, "Drinks": 2, "Sweets": 3, "Other": 4}
-        self.products.sort(key=lambda x: category_order.get(x.category, float('inf')))
+    @staticmethod
+    def sort_products(inventory, price_range=None, quantity_range=None, category=None):
+        if price_range:
+            inventory.products = sorted(inventory.products, key=lambda x: x.price, reverse=True if price_range[0] > price_range[1] else False)
+        if quantity_range:
+            inventory.products = sorted(inventory.products, key=lambda x: x.quantity, reverse=True if quantity_range[0] > quantity_range[1] else False)
+        if category:
+            inventory.products = [p for p in inventory.products if p.category.lower() == category.lower()]
+    
+    @staticmethod
+    def reset_sorting(inventory, initial_products):
+        inventory.products = initial_products.copy()
 
 class Sale:
     def __init__(self, date, quantity):
         self.date = date
         self.quantity = quantity
+
+    products_to_save = [product.__dict__ for product in inventory.products]
+    
+    with open('inventory.json', 'w') as json_file:
+        json.dump({"products": products_to_save}, json_file, indent=4)
 
 def save_inventory_to_file(inventory, filename):
     def default(obj):
@@ -193,9 +201,22 @@ Strings = {
     'product_updated': {'en': 'Updated product {product_name} quantity and price.', 'uk': 'Оновлено кількість та ціну продукту {product_name}.'},
 }
 
+
+def input_price_range():
+    min_price = float(input("Enter minimum price: "))
+    max_price = float(input("Enter maximum price: "))
+    return min_price, max_price
+
+def input_quantity_range():
+    min_quantity = int(input("Enter minimum quantity: "))
+    max_quantity = int(input("Enter maximum quantity: "))
+    return min_quantity, max_quantity
+
 def main():
     inventory_filename = "inventory.json"
     inventory = load_inventory_from_file(inventory_filename)
+    initial_inventory = inventory.products.copy()
+    inventory = InventoryManagementSystem()
 
     inventory.set_language('uk')
 
@@ -277,23 +298,35 @@ def main():
             report = inventory.generate_sales_report(start_date_time, end_date_time)
             for product, details in report.items():
                 print(f"{product}: Quantity: {details['Quantity']}, Sales Quantity: {details['Sales Quantity']}")
-
+        
         elif command == '8':
-            print("Sort by:")
-            print("1. Price")
-            print("2. Quantity")
-            print("3. Category")
-            sort_by = input("Enter number: ")
-            if sort_by == '1':
-                inventory.sort_products_by_price()
-            elif sort_by == '2':
-                inventory.sort_products_by_quantity()
-            elif sort_by == '3':
-                inventory.sort_products_by_category()
+            initial_products = inventory.products.copy()
+            print("1. Sort by price")
+            print("2. Sort by quantity")
+            print("3. Sort by category")
+            print("4. Reset sorting")
+            sort_choice = input("Enter sorting option: ")
+            
+            if sort_choice == '1':
+                price_range = input_price_range()
+                InventoryManagementSystem.sort_products(inventory, price_range=price_range)
+            elif sort_choice == '2':
+                quantity_range = input_quantity_range()
+                InventoryManagementSystem.sort_products(inventory, quantity_range=quantity_range)
+            elif sort_choice == '3':
+                category = input("Enter category: ")
+                InventoryManagementSystem.sort_products(inventory, category=category)
+            elif sort_choice == '4':
+                reset_sorting(inventory, initial_products)
             else:
-                print("Invalid option.")
+                print("Invalid sorting option.")
+            
+            save_inventory_to_file(inventory, inventory_filename)
+            print("Sorting applied and inventory saved.")
+
 
         elif command == '9':
+            inventory.products = initial_inventory.copy()
             save_inventory_to_file(inventory, inventory_filename)
             print("Inventory saved and exiting.")
             break
